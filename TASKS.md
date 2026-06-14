@@ -40,7 +40,7 @@ Done when:
 
 ## T2 — Schemas
 
-Status: TODO
+Status: DONE
 
 Implement `ecoturn/schemas.py`.
 
