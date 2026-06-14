@@ -77,4 +77,10 @@ The MVP succeeds if a judge can understand within 3 minutes:
 5. what constraints are verified;
 6. how failed assumptions trigger boundary refinement;
 7. how Hermes memory improves the second run.
+
+## ATL-Sandbox Modeling Assumption
+
+The MVP uses an ATL-inspired synthetic airport graph. The graph reflects public, high-level airport structure such as domestic/international terminals, concourses T/A/B/C/D/E/F, cargo areas, catering, maintenance, and charging hubs. It does not use real ATL operational data, real Delta fleet counts, real flight schedules, real GSE locations, or real charging infrastructure.
+
+All tasks, vehicles, chargers, travel times, emissions proxies, and performance metrics are synthetic prototype assumptions.
 ```

@@ -172,8 +172,8 @@ class VerificationReport(BaseModel):
 
     passed: bool
     violations: list[Violation] = Field(default_factory=list)
-    counterexamples: list[str] = Field(default_factory=list)
-    hard_constraint_summary: dict[str, bool] = Field(default_factory=dict)
+    counterexamples: list[dict[str, Any]] = Field(default_factory=list)
+    hard_constraint_summary: dict[str, int] = Field(default_factory=dict)
 
 
 class RefinementProposal(BaseModel):

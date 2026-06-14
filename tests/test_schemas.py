@@ -174,12 +174,13 @@ def test_verification_report_with_violations() -> None:
             Violation(constraint="soc_min", severity="critical", vehicle_id="V1"),
             Violation(constraint="overlap", severity="high", vehicle_id="V1"),
         ],
-        counterexamples=["V1 double-booked at t=10"],
-        hard_constraint_summary={"soc_min": False, "overlap": False},
+        counterexamples=[{"vehicle_id": "V1", "detail": "double-booked at t=10"}],
+        hard_constraint_summary={"soc_min": 1, "overlap": 1},
     )
     assert report.passed is False
     assert len(report.violations) == 2
-    assert report.hard_constraint_summary["soc_min"] is False
+    assert report.hard_constraint_summary["soc_min"] == 1
+    assert report.counterexamples[0]["vehicle_id"] == "V1"
 
 
 def test_refinement_proposal_modes() -> None:

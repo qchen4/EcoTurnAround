@@ -147,7 +147,7 @@ Done when:
 
 ## T6 — Verifier
 
-Status: TODO
+Status: DONE
 
 Implement `ecoturn/verifier.py`.
 

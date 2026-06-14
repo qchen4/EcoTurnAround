@@ -50,6 +50,7 @@ Do not build:
 
 - Use Python 3.11+.
 - Use type hints.
+- Use the project virtual environment at `/home/qchen438/.venvs/ecoturnaround`. Never use `--break-system-packages`.
 - Use Pydantic models from `ecoturn/schemas.py`.
 - Keep modules small.
 - Do not invent new data formats outside `schemas.py`.
