@@ -54,6 +54,13 @@ DISCLAIMER = (
     "operational data. No claim of global optimality."
 )
 
+TRACK_ALIGNMENT = (
+    "Aligned with Moving Things & People: Port & Airport Sustainability, "
+    "Supply Chain Visibility & Efficiency, and EV Charging Experience."
+)
+
+_SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+
 TABS = [
     "Decision Cockpit",
     "Scenario & Model",
@@ -168,6 +175,118 @@ def _events_df(schedule) -> pd.DataFrame:
     return pd.DataFrame([e.model_dump() for e in schedule.events])
 
 
+def _finding(bottleneck_report, finding_type: str):
+    return next(
+        (f for f in bottleneck_report.findings if f.finding_type == finding_type),
+        None,
+    )
+
+
+def _top_recommendation(proposals, base, opt, bottleneck_report):
+    """Pick the proposal aligned with the most visible KPI regression."""
+
+    if not proposals:
+        return None
+    by_change = {p.change: p for p in proposals}
+
+    # 1. Waste/freshness regression is the most visible tradeoff here.
+    if opt.waste_index > 100.0:
+        for change in (
+            "solver:freshness_priority",
+            "staging:reserve_catering_vehicle_near_catering_facility",
+        ):
+            if change in by_change:
+                return by_change[change]
+
+    # 2. Lateness — only if it actually regressed or dominates the bottlenecks.
+    worst_late = _finding(bottleneck_report, "worst_late_task")
+    late_worse = opt.late_task_rate > base.late_task_rate
+    late_dominant = worst_late is not None and _SEVERITY_RANK.get(
+        worst_late.severity, 0
+    ) >= max(
+        (_SEVERITY_RANK.get(f.severity, 0) for f in bottleneck_report.findings),
+        default=0,
+    ) and _SEVERITY_RANK.get(worst_late.severity, 0) >= _SEVERITY_RANK["high"]
+    if (late_worse or late_dominant) and "solver:lateness_penalty" in by_change:
+        return by_change["solver:lateness_penalty"]
+
+    # 3. Otherwise the highest-priority proposal in the ordered list.
+    return proposals[0]
+
+
+def _tradeoff_summary(base, opt) -> str:
+    improvements = []
+    if opt.co2e_index < 100.0:
+        improvements.append("emissions")
+    if opt.cost_index < 100.0:
+        improvements.append("cost")
+    if opt.idle_time_index < 100.0:
+        improvements.append("idle time")
+    improved = ", ".join(improvements) if improvements else "no index metrics"
+
+    late_clause = (
+        "preserving lateness"
+        if opt.late_task_rate <= base.late_task_rate
+        else "with some added lateness"
+    )
+    waste_clause = (
+        "but increases perishable waste risk"
+        if opt.waste_index > 100.0
+        else "and reduces perishable waste risk"
+    )
+    return (
+        f"The optimized dispatch reduces {improved} while {late_clause}, "
+        f"{waste_clause}."
+    )
+
+
+def _evidence_summary(finding) -> str:
+    """A short, human-readable one-liner describing a bottleneck finding."""
+
+    ev = finding.evidence or {}
+    ftype = finding.finding_type
+    if ftype == "worst_late_task":
+        if not ev or ev.get("late_by_min", 0) in (0, 0.0):
+            return "No late tasks in the optimized schedule."
+        return (
+            f"Task {ev.get('task_id')} on vehicle {ev.get('vehicle_id')} finished "
+            f"{ev.get('late_by_min')} min past its deadline "
+            f"({ev.get('origin_zone')} → {ev.get('destination_zone')})."
+        )
+    if ftype == "worst_energy_event":
+        if not ev:
+            return "No events to assess for energy draw."
+        return (
+            f"Task {ev.get('task_id')} drew the most energy "
+            f"({ev.get('energy_used')} kWh-proxy) on vehicle {ev.get('vehicle_id')}."
+        )
+    if ftype == "worst_co2e_event":
+        if not ev:
+            return "No events to assess for emissions."
+        return (
+            f"Task {ev.get('task_id')} produced the highest CO2e proxy "
+            f"({ev.get('co2e_proxy')}) using a {ev.get('powertrain')} vehicle."
+        )
+    if ftype == "worst_freshness_waste_event":
+        if not ev or ev.get("perishable_task_count") == 0:
+            return "No perishable/catering tasks in this scenario."
+        return (
+            f"Catering task {ev.get('task_id')} has the highest freshness/waste "
+            f"risk ({ev.get('freshness_risk')}) after {ev.get('elapsed_time_min')} "
+            "min elapsed."
+        )
+    if ftype == "worst_constraint_risk":
+        if ev.get("verifier_run") is False:
+            return "The verifier was not run for this schedule."
+        if ev.get("passed"):
+            return "All hard operational and safety constraints passed."
+        return (
+            f"Highest-severity violation: {ev.get('violation_type')} "
+            f"({finding.severity}); {ev.get('n_violations')} total."
+        )
+    return finding.title
+
+
 # --------------------------------------------------------------------------- #
 # Tabs
 # --------------------------------------------------------------------------- #
@@ -177,6 +296,7 @@ def _tab_cockpit() -> None:
         "ATL-sandbox decision cockpit for sustainable airport ground operations."
     )
     st.warning(DISCLAIMER, icon="⚠️")
+    st.caption(f"🎯 {TRACK_ALIGNMENT}")
 
     st.subheader("Operational goal (natural language)")
     prompt = st.text_area(
@@ -228,11 +348,14 @@ def _tab_cockpit() -> None:
 
     st.divider()
     st.subheader("Recommendation summary")
+    base = st.session_state["baseline_metrics"]
+    bottleneck = st.session_state["bottleneck_report"]
     proposals = st.session_state["refinement_proposals"]
+    st.markdown(f"**Tradeoff:** {_tradeoff_summary(base, opt)}")
     if not proposals:
         st.success("No refinements suggested — the optimized schedule looks healthy.")
     else:
-        top = proposals[0]
+        top = _top_recommendation(proposals, base, opt, bottleneck)
         gated = [p for p in proposals if p.mode == "human_gate"]
         st.markdown(
             f"**Top action:** `{top.change}` ({top.mode}) — {top.expected_effect}"
@@ -323,15 +446,22 @@ def _tab_comparison() -> None:
     st.subheader("Metrics: baseline vs optimized")
     st.dataframe(metrics_table, width="stretch")
 
-    st.subheader("Index metrics (baseline = 100, lower is better)")
-    index_chart = pd.DataFrame(
-        {
-            "baseline": [base.co2e_index, base.waste_index, base.idle_time_index, base.cost_index],
-            "optimized": [opt.co2e_index, opt.waste_index, opt.idle_time_index, opt.cost_index],
-        },
-        index=["co2e_index", "waste_index", "idle_time_index", "cost_index"],
-    )
-    st.bar_chart(index_chart)
+    st.subheader("Index metrics")
+    st.caption("Baseline = 100. Lower is better. Values above 100 indicate regression.")
+    index_specs = [
+        ("CO2e Index", opt.co2e_index),
+        ("Waste Index", opt.waste_index),
+        ("Idle Time Index", opt.idle_time_index),
+        ("Cost Index", opt.cost_index),
+    ]
+    index_cols = st.columns(len(index_specs))
+    for col, (label, value) in zip(index_cols, index_specs):
+        col.metric(
+            label,
+            f"{value:.1f}",
+            delta=f"{value - 100:.1f} vs 100",
+            delta_color="inverse",
+        )
 
     st.subheader("Late task rate")
     lc1, lc2 = st.columns(2)
@@ -369,10 +499,11 @@ def _tab_bottleneck() -> None:
                 min(1.0, max(0.0, finding.confidence)),
                 text=f"Confidence: {finding.confidence:.0%}",
             )
+            st.markdown(f"**Summary:** {_evidence_summary(finding)}")
             st.markdown(f"**Likely cause:** {finding.likely_cause or '—'}")
             st.markdown(f"**Suggested what-if:** {finding.suggested_what_if or '—'}")
-            st.markdown("**Evidence:**")
-            st.json(finding.evidence)
+            with st.expander("Raw evidence JSON"):
+                st.json(finding.evidence)
 
 
 def _tab_refinement() -> None:
@@ -399,7 +530,24 @@ def _tab_refinement() -> None:
     st.divider()
     st.subheader("Hermes reflection memory")
     entry = st.session_state["reflection_entry"]
-    with st.expander("Reflection entry to be saved"):
+
+    auto_changes = [p.change for p in proposals if p.mode == "auto"]
+    gate_changes = [p.change for p in proposals if p.mode == "human_gate"]
+    st.markdown("**Lesson summary**")
+    st.markdown(
+        "- **Main failure modes:** "
+        + (", ".join(f"`{m}`" for m in entry.failure_modes) or "none detected")
+    )
+    st.markdown(
+        "- **Recommended next steps (auto):** "
+        + (", ".join(f"`{c}`" for c in auto_changes) or "none")
+    )
+    st.markdown(
+        "- **Do NOT auto-relax (human gate):** "
+        + (", ".join(f"`{c}`" for c in gate_changes) or "none")
+    )
+
+    with st.expander("Full reflection entry JSON (to be saved)"):
         st.json(entry.model_dump())
 
     if st.button("Save Reflection to JSONL"):
@@ -455,6 +603,7 @@ def main() -> None:
     st.sidebar.title("EcoTurnaround OS")
     st.sidebar.caption(f"ATL-sandbox prototype · v{ecoturn.__version__}")
     st.sidebar.info(DISCLAIMER)
+    st.sidebar.caption(TRACK_ALIGNMENT)
 
     tab_objs = st.tabs(TABS)
     renderers = [

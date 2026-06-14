@@ -251,6 +251,24 @@ Done when:
 
 ---
 
+## T9.5 — Demo Narrative Polish
+
+Status: DONE
+
+UI-only polish of the Decision Cockpit (no backend changes): recommendation
+summary now aligns with the most visible KPI regression (freshness/waste when
+`waste_index > 100`; lateness only when it regresses or dominates) plus a
+one-sentence tradeoff summary; Schedule Comparison uses clear per-index metric
+cards (baseline = 100, lower is better) instead of the stacked-looking bar
+chart; Bottleneck findings show a human-readable summary above the raw
+evidence JSON; Refinement & Memory adds a compact Lesson summary (failure
+modes, next steps, human-gated boundaries) above the full JSON; and the
+Moving Things & People track alignment line appears in the hero and sidebar
+alongside the synthetic ATL-sandbox disclaimer. `pytest` passes; app compiles,
+launches headless, and passes Streamlit AppTest.
+
+---
+
 ## T10 — Demo Polish
 
 Status: TODO
