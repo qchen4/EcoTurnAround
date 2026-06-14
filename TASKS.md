@@ -228,7 +228,7 @@ Done when:
 
 ## T9 — Streamlit App
 
-Status: TODO
+Status: DONE
 
 Implement `app.py`.
 
