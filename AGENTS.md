@@ -93,6 +93,15 @@ The system must require human approval before changing:
 The system must never automatically relax safety-critical constraints.
 ```
 
+## Cursor Cloud specific instructions
+
+- Python venv lives at `.venv` in the repo root (gitignored). The `/home/qchen438/.venvs/ecoturnaround` path in the Coding Rules above is the original author's machine and does not exist here; use `.venv` instead.
+- The update script creates `.venv` and installs `requirements.txt`. System package `python3.12-venv` is required for `python3 -m venv` and is pre-installed on the snapshot.
+- Standard commands (see `README.md`): tests `.venv/bin/python -m pytest`; static compile check `.venv/bin/python -m compileall ecoturn app.py`; run app `.venv/bin/streamlit run app.py`. There is no separate linter configured.
+- The app is fully offline — no LLM/API keys or external services are needed. The natural-language prompt uses a deterministic fallback parser.
+- To run the Streamlit app headless for testing: `.venv/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true`. Health check at `http://localhost:8501/_stcore/health` returns `ok`.
+- Hello-world demo loop: open the app, keep the default goal, click "Run Full Pipeline"; expect Verifier = PASS and CO2e/Cost indices below the baseline of 100.
+
 
 
 
