@@ -71,7 +71,7 @@ Done when:
 
 ## T3 — Scenario Generator
 
-Status: TODO
+Status: DONE
 
 Implement `ecoturn/scenario_generator.py`.
 
@@ -88,6 +88,20 @@ Done when:
 - same seed generates same scenario
 - generated vehicles/tasks/chargers validate against schemas
 - `tests/test_scenario_generator.py` passes
+
+---
+
+## T3.1 — ATL-Sandbox Default Scenario
+
+Status: DONE
+
+Refinement of T3: replaced the generic airport graph with an ATL-inspired
+synthetic `ATL-sandbox` graph (domestic/international terminals, concourses
+T/A/B/C/D/E/F ordered west-to-east, cargo north/midfield/south, catering,
+maintenance, three charging hubs, restricted runway crossing, future
+autonomy corridor). Storytelling/demo model only — not real ATL or Delta
+data. Determinism, `synthetic=True`, and full travel-time coverage
+preserved. See `docs/PROJECT_SPEC.md` → "ATL-Sandbox Modeling Assumption".
 
 ---
 

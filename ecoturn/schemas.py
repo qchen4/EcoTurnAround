@@ -73,7 +73,7 @@ class Vehicle(BaseModel):
     vehicle_id: str
     vehicle_type: str
     powertrain: Powertrain
-    soc: float = Field(default=1.0, ge=0.0, le=1.0)
+    soc: float | None = Field(default=1.0, ge=0.0, le=1.0)
     current_zone: str
     compatible_tasks: list[str] = Field(default_factory=list)
     allowed_zones: list[str] = Field(default_factory=list)
@@ -201,6 +201,22 @@ class ReflectionEntry(BaseModel):
     failure_modes: list[str] = Field(default_factory=list)
     lesson: str = ""
     tags: list[str] = Field(default_factory=list)
+
+
+class GeneratedScenario(BaseModel):
+    """A fully materialized synthetic scenario produced by the generator.
+
+    Bundles the originating spec with the generated zone graph, travel-time
+    matrix, fleet, tasks, and chargers. All contents are synthetic.
+    """
+
+    spec: ScenarioSpec
+    zones: list[str] = Field(default_factory=list)
+    travel_times: dict[str, dict[str, float]] = Field(default_factory=dict)
+    vehicles: list[Vehicle] = Field(default_factory=list)
+    tasks: list[Task] = Field(default_factory=list)
+    chargers: list[Charger] = Field(default_factory=list)
+    synthetic: bool = True
 
 
 FleetSpec.model_rebuild()
