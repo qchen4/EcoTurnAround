@@ -1,6 +1,3 @@
-# File 4: `TASKS.md`
-
-```md
 # TASKS.md — EcoTurnaround OS
 
 ## Current Rule
@@ -131,7 +128,7 @@ Done when:
 
 ## T5 — Optimizer
 
-Status: TODO
+Status: DONE
 
 Implement `ecoturn/optimizer.py`.
 
@@ -253,4 +250,3 @@ Add:
 Done when:
 
 - 3-minute demo is possible without live debugging
-```

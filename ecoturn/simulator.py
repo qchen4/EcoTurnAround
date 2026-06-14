@@ -16,7 +16,9 @@ from ecoturn.schemas import GeneratedScenario, Task, Vehicle
 
 # --- Synthetic energy / emissions model constants --------------------------
 # These are deliberately simple, deterministic proxies (not physical models).
-BATTERY_CAPACITY_KWH: float = 50.0
+# Capacity is sized so a typical short GSE trip draws a modest fraction of
+# charge (avoiding unrealistic recharge-after-every-task behavior).
+BATTERY_CAPACITY_KWH: float = 200.0
 # Minutes to charge an empty battery to full (linear proxy).
 FULL_CHARGE_MINUTES: float = 45.0
 # Grid CO2e attributed per unit of EV energy proxy (kept well below the
