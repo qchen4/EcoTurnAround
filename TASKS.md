@@ -187,7 +187,7 @@ are intended to feed T7 refinement. Synthetic ATL-sandbox analysis only.
 
 ## T7 — Adaptive Refinement
 
-Status: TODO
+Status: DONE
 
 Implement `ecoturn/refinement.py`.
 
