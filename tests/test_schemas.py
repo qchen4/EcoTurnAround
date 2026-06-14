@@ -193,7 +193,7 @@ def test_refinement_proposal_modes() -> None:
 def test_reflection_entry_json_serializable() -> None:
     entry = ReflectionEntry(
         attempt_id="a1",
-        scenario_signature="atl_demo:v1",
+        scenario_signature={"scenario_name": "atl_demo", "hub": "ATL"},
         optimizer="rolling_horizon_greedy",
         result={"co2e_index": 86.0, "late_task_rate": 0.0},
         failure_modes=["charger_congestion"],

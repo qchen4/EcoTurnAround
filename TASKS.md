@@ -209,7 +209,7 @@ Done when:
 
 ## T8 — Hermes Memory
 
-Status: TODO
+Status: DONE
 
 Implement `ecoturn/memory.py`.
 

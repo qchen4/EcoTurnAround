@@ -195,7 +195,7 @@ class ReflectionEntry(BaseModel):
     """A Hermes-style reflection memory entry."""
 
     attempt_id: str
-    scenario_signature: str
+    scenario_signature: dict[str, Any] = Field(default_factory=dict)
     optimizer: str
     result: dict[str, Any] = Field(default_factory=dict)
     failure_modes: list[str] = Field(default_factory=list)
