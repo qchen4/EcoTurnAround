@@ -169,6 +169,22 @@ Done when:
 
 ---
 
+## T6.5 — Bottleneck / Critical Path Analysis Report
+
+Status: DONE
+
+Inserted diagnostic task: `ecoturn/analysis.py` adds
+`generate_bottleneck_report(...)`, a Vivado-timing-report-style analysis that
+surfaces the worst operational bottlenecks with evidence-backed findings
+(`worst_late_task`, `worst_energy_event`, `worst_co2e_event`,
+`worst_freshness_waste_event`, `worst_constraint_risk`) plus confidences in
+[0,1]. Diagnostic only — does not change baseline/optimizer/verifier behavior.
+Adds minimal `BottleneckFinding` / `BottleneckReport` schema models. Findings
+are intended to feed T7 refinement. Synthetic ATL-sandbox analysis only.
+`tests/test_analysis.py` passes.
+
+---
+
 ## T7 — Adaptive Refinement
 
 Status: TODO

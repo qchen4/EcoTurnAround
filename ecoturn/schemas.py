@@ -203,6 +203,29 @@ class ReflectionEntry(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
 
+class BottleneckFinding(BaseModel):
+    """One evidence-backed diagnostic finding about a schedule bottleneck."""
+
+    finding_type: str
+    title: str
+    severity: Severity
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    likely_cause: str = ""
+    suggested_what_if: str = ""
+    confidence: float = Field(default=0.65, ge=0.0, le=1.0)
+
+
+class BottleneckReport(BaseModel):
+    """A diagnostic, Vivado-style bottleneck/critical-path analysis report.
+
+    Diagnostic only — it does not change optimization results. Built from
+    synthetic ATL-sandbox data.
+    """
+
+    findings: list[BottleneckFinding] = Field(default_factory=list)
+    summary: dict[str, Any] = Field(default_factory=dict)
+
+
 class GeneratedScenario(BaseModel):
     """A fully materialized synthetic scenario produced by the generator.
 
