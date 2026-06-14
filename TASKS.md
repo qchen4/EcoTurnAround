@@ -271,7 +271,7 @@ launches headless, and passes Streamlit AppTest.
 
 ## T10 — Demo Polish
 
-Status: TODO
+Status: DONE
 
 Add:
 
