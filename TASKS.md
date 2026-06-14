@@ -107,7 +107,7 @@ preserved. See `docs/PROJECT_SPEC.md` → "ATL-Sandbox Modeling Assumption".
 
 ## T4 — Baseline Simulator
 
-Status: TODO
+Status: DONE
 
 Implement:
 
