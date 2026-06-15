@@ -284,3 +284,26 @@ Add:
 Done when:
 
 - 3-minute demo is possible without live debugging
+
+---
+
+## T11 — Decision Intelligence UI Redesign
+
+Status: DONE
+
+Frontend/information-architecture redesign only (no backend changes). Re-cast
+the Streamlit app from a pipeline dashboard into a decision-intelligence
+cockpit that answers "what should I do and why?" first. New tabs: Decision
+Brief (answer-first: business question, recommended decision, confidence,
+expected impact, key tradeoff, human-gated risks, knowledge created); What-if
+Workspace (deterministic natural-language what-ifs mapped to model change /
+effect / confidence / human-gate / evidence, no optimizer rerun); Evidence &
+Confidence (claim/evidence/confidence/caveat board + synthetic CO2e proxy
+breakdown by powertrain and task type); Critical Bottlenecks (decision-insight
+cards with business meaning + decision implication, raw JSON in expanders);
+Knowledge Memory (lesson-first, manual JSONL save, JSON in expander); Technical
+Appendix (all raw JSON + artifact downloads). Goal/seed/run moved to the
+sidebar; synthetic ATL-sandbox disclaimer and Moving Things & People alignment
+stay visible. Validated: `pytest` 135 passed, app compiles, headless Streamlit
+serves HTTP 200, and Streamlit AppTest runs the full flow (incl. human-gated
+what-if) with zero exceptions.
